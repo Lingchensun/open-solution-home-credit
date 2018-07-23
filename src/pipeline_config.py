@@ -1,12 +1,11 @@
 import os
 
 from attrdict import AttrDict
-from deepsense import neptune
 
-from .utils import read_params, parameter_eval
+from .utils import NeptuneContext, parameter_eval
 
-ctx = neptune.Context()
-params = read_params(ctx, fallback_file='../configs/neptune.yaml')
+ctx = NeptuneContext()
+params = ctx.params
 
 RANDOM_SEED = 90210
 DEV_SAMPLE_SIZE = 1000
@@ -300,7 +299,8 @@ SOLUTION_CONFIG = AttrDict({
     'bureau_balance': {'table_name': 'bureau_balance',
                        'id_columns': ('SK_ID_CURR', 'SK_ID_CURR'),
                        'last_k_agg_periods': parameter_eval(params.bureau_balance__last_k_agg_periods),
-                       'last_k_agg_period_fractions': parameter_eval(params.bureau_balance__last_k_agg_period_fractions),
+                       'last_k_agg_period_fractions': parameter_eval(
+                           params.bureau_balance__last_k_agg_period_fractions),
                        'last_k_trend_periods': parameter_eval(params.bureau_balance__last_k_trend_periods),
                        'num_workers': params.num_workers
                        },
@@ -327,7 +327,7 @@ SOLUTION_CONFIG = AttrDict({
                          'last_k_agg_periods': parameter_eval(params.pos_cash__last_k_agg_periods),
                          'last_k_trend_periods': parameter_eval(params.pos_cash__last_k_trend_periods),
                          'last_k_agg_period_fractions': parameter_eval(
-                                  params.pos_cash__last_k_agg_period_fractions),
+                             params.pos_cash__last_k_agg_period_fractions),
                          'num_workers': params.num_workers
                          },
 

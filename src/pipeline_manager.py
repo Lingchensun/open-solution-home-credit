@@ -5,19 +5,19 @@ from attrdict import AttrDict
 import numpy as np
 import pandas as pd
 from scipy.stats import gmean
-from deepsense import neptune
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import train_test_split, KFold, StratifiedKFold
 
 from . import pipeline_config as cfg
 from .pipelines import PIPELINES
-from .utils import init_logger, read_params, set_seed, create_submission, verify_submission, calculate_rank, \
+from .utils import NeptuneContext, init_logger, set_seed, create_submission, verify_submission, \
+    calculate_rank, \
     read_oof_predictions
 
 set_seed(cfg.RANDOM_SEED)
 logger = init_logger()
-ctx = neptune.Context()
-params = read_params(ctx, fallback_file='../configs/neptune.yaml')
+ctx = NeptuneContext()
+params = ctx.params
 
 
 class PipelineManager:

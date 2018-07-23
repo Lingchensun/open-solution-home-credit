@@ -1,16 +1,56 @@
 import logging
 import os
+import pathlib
 import random
 import sys
 import multiprocessing as mp
 from functools import reduce
 
 import glob
+from deepsense import neptune
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
 import yaml
 from attrdict import AttrDict
+
+neptune_config_path = str(pathlib.Path(__file__).resolve().parents[1] / 'configs' / 'neptune_local.yaml')
+
+
+# Alex Martelli's 'Borg'
+# http://python-3-patterns-idioms-test.readthedocs.io/en/latest/Singleton.html
+class _Borg:
+    _shared_state = {}
+
+    def __init__(self):
+        self.__dict__ = self._shared_state
+
+
+class NeptuneContext(_Borg):
+    def __init__(self, fallback_file=neptune_config_path):
+        _Borg.__init__(self)
+
+        self.ctx = neptune.Context()
+        self.fallback_file = fallback_file
+        self.params = self._read_params()
+        self.numeric_channel = neptune.ChannelType.NUMERIC
+        self.image_channel = neptune.ChannelType.IMAGE
+        self.text_channel = neptune.ChannelType.TEXT
+
+    def channel_send(self, *args, **kwargs):
+        self.ctx.channel_send(*args, **kwargs)
+
+    def _read_params(self):
+        if self.ctx.params.__class__.__name__ == 'OfflineContextParams':
+            params = self._read_yaml().parameters
+        else:
+            params = self.ctx.params
+        return params
+
+    def _read_yaml(self):
+        with open(self.fallback_file) as f:
+            config = yaml.load(f)
+        return AttrDict(config)
 
 
 def create_submission(meta, predictions):
@@ -150,6 +190,7 @@ def _clean_columns(df, keep_colnames):
     for i, colname in enumerate(feature_colnames):
         new_colnames.append('model_{}'.format(i))
     return new_colnames
+
 
 def safe_div(a, b):
     try:
