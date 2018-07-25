@@ -61,7 +61,10 @@ def read_params(ctx, fallback_file):
 
 
 def read_yaml(filepath):
-    with open(filepath) as f:
+    basepath = os.path.dirname(__file__)
+    curr_file = os.path.abspath(os.path.join(basepath, filepath))
+    with open(curr_file) as f:
+        print('loaded')
         config = yaml.load(f)
     return AttrDict(config)
 
